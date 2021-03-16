@@ -1,0 +1,25 @@
+{
+  "name": "node_server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "forever stop ./build/index.js ;tsc;forever start ./build/index.js",
+    "stop": "forever stop ./build/index.js",
+    "logs": "forever logs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "selenium-webdriver": "4.0.0-beta.1",
+    "axios": "0.21.1",
+    "typescript": "3.4.3",
+    "forever": "3.0.4"
+  },
+  "devDependencies": {
+    "@types/chromedriver": "2.38.0",
+    "@types/node": "^12.12.17",
+    "typescript": "3.4.3"
+  }
+}

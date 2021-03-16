@@ -112,13 +112,11 @@ async function start(interval: number) {
       token = await persistentToken()
     }
 
-    await Promise.all(
-      targets.map(async (v) => {
-        var issues = await v.run(token.token, token.session)
-        await new FeishuPoster().postIssue(v.target, issues)
-      })
-    )
+    for (var v in targets) {
+      var issues = await targets[v].run(token.token, token.session)
+      await new FeishuPoster().postIssue(targets[v].target, issues)
+    }
   })
 }
 
-start(20 * 1000)
+start(5 * 1000)

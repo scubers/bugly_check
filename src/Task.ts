@@ -22,6 +22,7 @@ export class Task {
     this.lastIssueDate = this.getTimestamp(issues[0])
     Logger.info(`新问题: ${newIssues.length}`)
     Logger.info(`最新更新时间: ${issues[0].issueDocMap.lastUploadTime}`)
+    Logger.info(JSON.stringify(newIssues))
     return newIssues
   }
 

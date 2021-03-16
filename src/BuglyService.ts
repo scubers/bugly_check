@@ -1,6 +1,7 @@
 import { BuglyIssue } from './entity/BuglyIssue'
 import * as axios from 'axios'
 import { Logger } from './util/Logger'
+import { tokenToString } from 'typescript'
 
 export type BuglyIssueDateType =
   | 'custom'
@@ -85,9 +86,8 @@ export class BuglyService {
     url += `&pid=2`
     url += `&fsn=bdd32f36-da28-4c15-a68e-e07552df4b28`
 
-    Logger.info(url)
     let data = await this.request(url)
-    Logger.info(JSON.stringify(data))
+
     let list = data.issueList as any[]
     let issues = list as BuglyIssue[]
     return issues
@@ -98,7 +98,7 @@ export class BuglyService {
     target: BuglyCheckTarget,
     dateType: BuglyIssueDateType
   ): Promise<BuglyIssue[]> {
-    Logger.info(`开始检测Bugly ${target.title}, AppId: ${target.appId}`)
+    Logger.info(`开始检测 ${targetToString(target)}`)
     let p = new BuglyIssueSearchParam()
     p.date = dateType
     p.appId = target.appId
@@ -106,17 +106,10 @@ export class BuglyService {
     p.exceptionTypeList = ['Crash', 'AllCatched', 'Unity3D', 'Lua', 'JS']
     p.rows = 100
     let issues = await this.getIssueList(p)
-    Logger.info(
-      `Bugly ${target.title}, AppId: ${target.appId}, result: ${JSON.stringify(
-        issues
-      )}`
-    )
     return issues
   }
 
   private async request(url: string, params: any = {}): Promise<any> {
-    Logger.info(`token: ${this.token}`)
-    Logger.info(`session: ${this.session}`)
     let data = await axios.default.request({
       url: url,
       method: 'get',

@@ -17,7 +17,8 @@ export class Task {
     }
 
     var newIssues = issues.filter(
-      (v) => this.getTimestamp(v) > this.lastIssueDate
+      (v) =>
+        this.getTimestamp(v) > this.lastIssueDate && v.issueDocMap.status != 1
     )
     this.lastIssueDate = this.getTimestamp(issues[0])
     Logger.info(`新问题: ${newIssues.length}`)

@@ -34,38 +34,21 @@ export interface BuglyCheckTarget {
   platform: BuglyIssuePlatformType
 }
 
-export enum ErrorType {
-  crash,
-  error
-}
-
 function targetToString(target: BuglyCheckTarget): string {
-  return `${target.title}, ${target.platform == 1 ? 'android' : 'ios'}, id: ${
-    target.appId
-  }`
+  return `${target.title}, 【${
+    target.platform == 1 ? 'android' : 'ios'
+  }】, id: ${target.appId}`
 }
 
-function getCrashLink(target: BuglyCheckTarget, issue: BuglyIssue): string {
+function getLink(target: BuglyCheckTarget, issue: BuglyIssue): string {
   return `https://bugly.qq.com/v2/crash-reporting/crashes/${target.appId}/${issue.issueId}?pid=${target.platform}`
 }
 
-function getErrorLink(target: BuglyCheckTarget, issue: BuglyIssue): string {
-  return `https://bugly.qq.com/v2/crash-reporting/errors/${target.appId}/${issue.issueId}?pid=${target.platform}`
-}
-
-function getReadableIssue(
-  issue: BuglyIssue,
-  target: BuglyCheckTarget,
-  errorType: ErrorType
-): string {
-  var link =
-    errorType == ErrorType.crash
-      ? getCrashLink(target, issue)
-      : getErrorLink(target, issue)
+function getReadableIssue(issue: BuglyIssue, target: BuglyCheckTarget): string {
   var msg = '====================================\n'
   msg += `平台：${targetToString(target)}\n`
   msg += `发生时间：${issue.issueDocMap.lastUploadTime}\n`
-  msg += `链接：${link}\n`
+  msg += `链接：${getLink(target, issue)}\n`
   msg += `${issue.issueDocMap.expName}\n`
   msg += `${issue.issueDocMap.expName}\n`
   msg += `${issue.issueDocMap.expMessage}\n`
@@ -113,7 +96,6 @@ export class BuglyService {
   // 检查过去一小时内的崩溃，并且发送报告
   async check(
     target: BuglyCheckTarget,
-    errorType: ErrorType,
     dateType: BuglyIssueDateType
   ): Promise<BuglyIssue[]> {
     Logger.info(`开始检测Bugly ${target.title}, AppId: ${target.appId}`)
@@ -121,14 +103,7 @@ export class BuglyService {
     p.date = dateType
     p.appId = target.appId
     p.platformId = target.platform
-    switch (errorType) {
-      case ErrorType.crash:
-        p.exceptionTypeList = ['Crash']
-        break
-      case ErrorType.error:
-        p.exceptionTypeList = ['AllCatched', 'Unity3D', 'Lua', 'JS']
-        break
-    }
+    p.exceptionTypeList = ['Crash', 'AllCatched', 'Unity3D', 'Lua', 'JS']
     p.rows = 100
     let issues = await this.getIssueList(p)
     Logger.info(
@@ -161,39 +136,31 @@ export class BuglyService {
 }
 
 export interface IssuePoster {
-  postIssue(
-    target: BuglyCheckTarget,
-    issues: BuglyIssue[],
-    errorType: ErrorType
-  ): Promise<void>
+  postIssue(target: BuglyCheckTarget, issues: BuglyIssue[]): Promise<void>
 }
 
 export class FeishuPoster implements IssuePoster {
   async postIssue(
     target: BuglyCheckTarget,
-    issues: BuglyIssue[],
-    errorType: ErrorType
+    issues: BuglyIssue[]
   ): Promise<void> {
-    if (issues.length == 0) return
-    Logger.info(`有 ${issues.length}个问题`)
-    let data = await axios.default.request({
-      url:
-        'https://open.feishu.cn/open-apis/bot/v2/hook/e1549b66-b1f9-40c9-89ea-f1283dd94389',
-      method: 'get',
-      headers: {},
-      data: {
-        msg_type: 'text',
-        content: {
-          text: issues
-            .map((v) => getReadableIssue(v, target, errorType))
-            .join('\n')
+    if (issues == undefined || issues == null || issues.length == 0) return
+    Logger.info(`发送到飞书，有 ${issues.length}个问题`)
+    await axios.default
+      .request({
+        url:
+          'https://open.feishu.cn/open-apis/bot/v2/hook/e1549b66-b1f9-40c9-89ea-f1283dd94389',
+        method: 'get',
+        headers: {},
+        data: {
+          msg_type: 'text',
+          content: {
+            text: issues.map((v) => getReadableIssue(v, target)).join('\n')
+          }
         }
-      }
-    })
-    if (data.data.status == 200) {
-      return data.data.ret
-    }
-    Logger.info(data.data)
-    throw 'error'
+      })
+      .catch((e) => {
+        Logger.info(`发送飞书出错: ${e}`)
+      })
   }
 }

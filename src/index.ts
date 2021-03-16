@@ -1,12 +1,8 @@
 import * as fs from 'fs'
 import { BuglyLoginAction } from './BuglyLogin'
-import {
-  BuglyCheckTarget,
-  BuglyService,
-  ErrorType,
-  FeishuPoster
-} from './BuglyService'
+import { FeishuPoster } from './BuglyService'
 import * as readline from 'readline'
+import { Task } from './Task'
 
 const authFile = `${__dirname}/../.auth.json`
 const tokenFile = `${__dirname}/../.token.json`
@@ -22,6 +18,9 @@ interface Auth {
   account: string
 }
 
+/**
+ * 获取输入的帐号密码
+ */
 async function inputAuth(): Promise<Auth> {
   return new Promise((resolve, reject) => {
     var window = readline.createInterface({
@@ -36,7 +35,6 @@ async function inputAuth(): Promise<Auth> {
       auth.account = account
       window.question('bugly pwd: ', (pwd) => {
         auth.pwd = pwd
-
         resolve(auth)
         window.close()
       })
@@ -44,10 +42,11 @@ async function inputAuth(): Promise<Auth> {
   })
 }
 
+/**
+ * 写入帐号密码
+ */
 async function persistentToken(): Promise<Token> {
   if (!fs.existsSync(authFile)) {
-    // 写入
-    console.log('---')
     var input = await inputAuth()
     fs.writeFileSync(authFile, JSON.stringify(input))
   }
@@ -64,6 +63,9 @@ async function persistentToken(): Promise<Token> {
   return token
 }
 
+/**
+ * 获取缓存的token
+ */
 async function getCachedToken(): Promise<Token> {
   if (!fs.existsSync(tokenFile)) {
     return null
@@ -83,17 +85,17 @@ async function getCachedToken(): Promise<Token> {
   return token
 }
 
-var targets: BuglyCheckTarget[] = [
-  {
+var targets: Task[] = [
+  new Task({
     appId: '15f7f4e8e5',
-    title: 'allvalue ios',
+    title: 'allvalue',
     platform: 2
-  },
-  {
+  }),
+  new Task({
     appId: '6b04395266',
-    title: 'allvalue android',
+    title: 'allvalue',
     platform: 1
-  }
+  })
 ]
 
 async function loopInterval(interval: number, action: () => Promise<void>) {
@@ -111,27 +113,12 @@ async function start(interval: number) {
     }
 
     await Promise.all(
-      targets.map(async (t) => {
-        var issues = await new BuglyService(token.token, token.session).check(
-          t,
-          ErrorType.error,
-          'last_1_hour'
-        )
-        await new FeishuPoster().postIssue(t, issues, ErrorType.error)
-      })
-    )
-    await Promise.all(
-      targets.map(async (t) => {
-        var issues = await new BuglyService(token.token, token.session).check(
-          t,
-          ErrorType.crash,
-          'last_1_hour'
-        )
-        await new FeishuPoster().postIssue(t, issues, ErrorType.crash)
+      targets.map(async (v) => {
+        var issues = await v.run(token.token, token.session)
+        await new FeishuPoster().postIssue(v.target, issues)
       })
     )
   })
 }
 
-start(3600 * 1000)
-// start(5 * 1000)
+start(5 * 1000)

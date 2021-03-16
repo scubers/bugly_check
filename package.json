@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsc;node ./build/index.js --headless=1",
-    "start": "forever stop ./build/index.js ;tsc;forever start ./build/index.js",
+    "dev": "tsc;node ./build/index.js --silent=0",
+    "dev_silent": "tsc;node ./build/index.js --silent=1",
+    "start": "forever stop ./build/index.js ;tsc;forever start ./build/index.js --silent=1",
     "stop": "forever stop ./build/index.js",
     "logs": "forever logs"
   },
@@ -17,11 +18,12 @@
     "axios": "0.21.1",
     "typescript": "3.4.3",
     "forever": "3.0.4",
-    "chromedriver": "89.0.0"
+    "chromedriver": "89.0.0",
+    "dateformat": "4.5.1"
   },
   "devDependencies": {
     "@types/chromedriver": "2.38.0",
     "@types/node": "^12.12.17",
-    "typescript": "3.4.3"
+    "@types/dateformat": "1.0.1"
   }
 }

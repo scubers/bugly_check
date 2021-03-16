@@ -1,6 +1,7 @@
 import * as driver from 'selenium-webdriver'
 import { Options } from 'selenium-webdriver/chrome'
 import { ArgsUtil } from './ArgsUtil'
+import { Logger } from './util/Logger'
 
 export class BuglyLoginAction {
   delay(time: number): Promise<void> {
@@ -16,15 +17,20 @@ export class BuglyLoginAction {
   ): Promise<{ token: string; session: string }> {
     let buglyHost = 'https://bugly.qq.com/v2/workbench/apps'
 
-    let headless = ArgsUtil.get('headless') != '1'
+    let headless = ArgsUtil.get('silent') == '1'
+
+    Logger.info(`开始登录: ${buglyHost}`)
 
     var option = new Options()
     if (headless) {
+      Logger.info(`开启headless`)
       option = option.addArguments(
         '--no-sandbox',
         '--headless',
         '--disable-dev-shm-usage'
       )
+    } else {
+      Logger.info(`关闭headless，如果需要加上参数 --headless=1`)
     }
 
     let browser = new driver.Builder()
@@ -49,8 +55,9 @@ export class BuglyLoginAction {
       // 点击登录
       let btn = await browser.findElement(driver.By.id('login_button'))
       btn.click()
+      Logger.info(`输入完帐号密码，等待跳转。。`)
       // 等3s，等待重定向
-      await this.delay(10000)
+      await this.delay(8000)
       // 获取session
       let session = await browser.manage().getCookie('bugly_session')
       // this.cookie = `bugly_session=${session.value};`
@@ -68,20 +75,13 @@ export class BuglyLoginAction {
         token: token,
         session: session.value
       }
-      console.log(info)
+      Logger.info(info)
       return info
     } catch (error) {
-      console.log(error)
+      Logger.info(error)
     } finally {
       // 退出
       browser.quit()
     }
   }
 }
-
-// async function start() {
-//   console.log(ArgsUtil.list())
-//   let action = new BuglyLoginAction()
-//   var info = await action.login('jr-wong@qq.com', 'Whjyrf.707@qq')
-//   console.log(info)
-// }

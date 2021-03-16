@@ -1,5 +1,6 @@
 import { BuglyIssue } from './entity/BuglyIssue'
 import * as axios from 'axios'
+import { Logger } from './util/Logger'
 
 export type BuglyIssueDateType =
   | 'custom'
@@ -101,9 +102,9 @@ export class BuglyService {
     url += `&pid=2`
     url += `&fsn=bdd32f36-da28-4c15-a68e-e07552df4b28`
 
-    console.log(url)
+    Logger.info(url)
     let data = await this.request(url)
-    console.log(JSON.stringify(data))
+    Logger.info(JSON.stringify(data))
     let list = data.issueList as any[]
     let issues = list as BuglyIssue[]
     return issues
@@ -115,7 +116,7 @@ export class BuglyService {
     errorType: ErrorType,
     dateType: BuglyIssueDateType
   ): Promise<BuglyIssue[]> {
-    console.log(`开始检测Bugly ${target.title}, AppId: ${target.appId}`)
+    Logger.info(`开始检测Bugly ${target.title}, AppId: ${target.appId}`)
     let p = new BuglyIssueSearchParam()
     p.date = dateType
     p.appId = target.appId
@@ -130,7 +131,7 @@ export class BuglyService {
     }
     p.rows = 100
     let issues = await this.getIssueList(p)
-    console.log(
+    Logger.info(
       `Bugly ${target.title}, AppId: ${target.appId}, result: ${JSON.stringify(
         issues
       )}`
@@ -139,8 +140,8 @@ export class BuglyService {
   }
 
   private async request(url: string, params: any = {}): Promise<any> {
-    console.log(`token: ${this.token}`)
-    console.log(`session: ${this.session}`)
+    Logger.info(`token: ${this.token}`)
+    Logger.info(`session: ${this.session}`)
     let data = await axios.default.request({
       url: url,
       method: 'get',
@@ -154,7 +155,7 @@ export class BuglyService {
     if (data.data.status == 200) {
       return data.data.ret
     }
-    console.log(data.data)
+    Logger.info(data.data)
     throw 'error'
   }
 }
@@ -174,7 +175,7 @@ export class FeishuPoster implements IssuePoster {
     errorType: ErrorType
   ): Promise<void> {
     if (issues.length == 0) return
-    console.log(`有 ${issues.length}个问题`)
+    Logger.info(`有 ${issues.length}个问题`)
     let data = await axios.default.request({
       url:
         'https://open.feishu.cn/open-apis/bot/v2/hook/e1549b66-b1f9-40c9-89ea-f1283dd94389',
@@ -192,7 +193,7 @@ export class FeishuPoster implements IssuePoster {
     if (data.data.status == 200) {
       return data.data.ret
     }
-    console.log(data.data)
+    Logger.info(data.data)
     throw 'error'
   }
 }

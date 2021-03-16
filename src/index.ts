@@ -119,4 +119,4 @@ async function start(interval: number) {
   })
 }
 
-start(5 * 1000)
+start(10 * 1000)

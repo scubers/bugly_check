@@ -100,5 +100,5 @@ async function start(interval: number) {
   }, interval)
 }
 
-// start(3600 * 1000)
-start(5 * 1000)
+start(3600 * 1000)
+// start(5 * 1000)

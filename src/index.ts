@@ -96,8 +96,15 @@ var targets: BuglyCheckTarget[] = [
   }
 ]
 
-async function start(interval: number) {
+async function loopInterval(interval: number, action: () => Promise<void>) {
+  await action()
   setTimeout(async () => {
+    await loopInterval(interval, action)
+  }, interval)
+}
+
+async function start(interval: number) {
+  loopInterval(interval, async () => {
     var token = await getCachedToken()
     if (token == null) {
       token = await persistentToken()
@@ -123,9 +130,7 @@ async function start(interval: number) {
         await new FeishuPoster().postIssue(t, issues, ErrorType.crash)
       })
     )
-
-    start(interval)
-  }, interval)
+  })
 }
 
 start(3600 * 1000)

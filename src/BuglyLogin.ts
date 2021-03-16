@@ -16,7 +16,7 @@ export class BuglyLoginAction {
   ): Promise<{ token: string; session: string }> {
     let buglyHost = 'https://bugly.qq.com/v2/workbench/apps'
 
-    let headless = ArgsUtil.get('headless') == '1'
+    let headless = ArgsUtil.get('headless') != '1'
 
     var option = new Options()
     if (headless) {

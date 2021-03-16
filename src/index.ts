@@ -2,12 +2,11 @@ import * as fs from 'fs'
 import { BuglyLoginAction } from './BuglyLogin'
 import {
   BuglyCheckTarget,
-  BuglyIssueSearchParam,
   BuglyService,
   ErrorType,
   FeishuPoster
 } from './BuglyService'
-import { BuglyIssue } from './entity/BuglyIssue'
+import * as readline from 'readline'
 
 const authFile = `${__dirname}/../.auth.json`
 const tokenFile = `${__dirname}/../.token.json`
@@ -23,7 +22,36 @@ interface Auth {
   account: string
 }
 
+async function inputAuth(): Promise<Auth> {
+  return new Promise((resolve, reject) => {
+    var window = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    })
+    var auth: Auth = {
+      account: '',
+      pwd: ''
+    }
+    window.question('bugly account: ', (account) => {
+      auth.account = account
+      window.question('bugly pwd: ', (pwd) => {
+        auth.pwd = pwd
+
+        resolve(auth)
+        window.close()
+      })
+    })
+  })
+}
+
 async function persistentToken(): Promise<Token> {
+  if (!fs.existsSync(authFile)) {
+    // 写入
+    console.log('---')
+    var input = await inputAuth()
+    fs.writeFileSync(authFile, JSON.stringify(input))
+  }
+
   var content = fs.readFileSync(authFile, 'utf8')
   var auth: Auth = JSON.parse(content)
   var info = await new BuglyLoginAction().login(auth.account, auth.pwd)

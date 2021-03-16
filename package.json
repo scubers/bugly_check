@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "tsc;node ./build/index.js --headless=1",
     "start": "forever stop ./build/index.js ;tsc;forever start ./build/index.js",
     "stop": "forever stop ./build/index.js",
     "logs": "forever logs"
@@ -15,7 +16,8 @@
     "selenium-webdriver": "4.0.0-beta.1",
     "axios": "0.21.1",
     "typescript": "3.4.3",
-    "forever": "3.0.4"
+    "forever": "3.0.4",
+    "chromedriver": "89.0.0"
   },
   "devDependencies": {
     "@types/chromedriver": "2.38.0",

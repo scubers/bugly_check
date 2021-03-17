@@ -78,8 +78,8 @@ async function getCachedToken(): Promise<Token> {
     return null
   }
 
-  // 2小时
-  if (new Date().getTime() - token.time > 3600 * 3 * 1000) {
+  // 24小时
+  if (new Date().getTime() - token.time > 3600 * 24 * 1000) {
     return null
   }
   return token

@@ -57,7 +57,7 @@ export class BuglyLoginAction {
       btn.click()
       Logger.info(`输入完帐号密码，等待跳转。。`)
       // 等3s，等待重定向
-      await this.delay(8000)
+      await this.delay(10000)
       // 获取session
       let session = await browser.manage().getCookie('bugly_session')
       // this.cookie = `bugly_session=${session.value};`

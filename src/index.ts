@@ -53,7 +53,8 @@ async function persistentToken(): Promise<Token> {
 
   var content = fs.readFileSync(authFile, 'utf8')
   var auth: Auth = JSON.parse(content)
-  var info = await new BuglyLoginAction().login(auth.account, auth.pwd)
+  // var info = await new BuglyLoginAction().login(auth.account, auth.pwd)
+  var info = await new BuglyLoginAction().loginByQR()
   const token: Token = {
     token: info.token,
     session: info.session,

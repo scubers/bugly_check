@@ -123,8 +123,7 @@ export class BuglyService {
     if (data.data.status == 200) {
       return data.data.ret
     }
-    Logger.info(data.data)
-    throw 'error'
+    throw JSON.stringify(data.data)
   }
 }
 
@@ -139,21 +138,29 @@ export class FeishuPoster implements IssuePoster {
   ): Promise<void> {
     if (issues == undefined || issues == null || issues.length == 0) return
     Logger.info(`发送到飞书，有 ${issues.length}个问题`)
-    await axios.default
-      .request({
-        url:
-          'https://open.feishu.cn/open-apis/bot/v2/hook/e1549b66-b1f9-40c9-89ea-f1283dd94389',
-        method: 'get',
-        headers: {},
-        data: {
-          msg_type: 'text',
-          content: {
-            text: issues.map((v) => getReadableIssue(v, target)).join('\n')
-          }
+    await FeishuBot.send(
+      issues.map((v) => getReadableIssue(v, target)).join('\n')
+    ).catch((e) => {
+      Logger.info(`发送飞书出错: ${e}`)
+    })
+  }
+}
+
+export class FeishuBot {
+  static botUrl =
+    'https://open.feishu.cn/open-apis/bot/v2/hook/87e2cd1d-a3b4-41b3-ab0e-09d5bf93c270'
+
+  static async send(text: string): Promise<void> {
+    await axios.default.request({
+      url: this.botUrl,
+      method: 'get',
+      headers: {},
+      data: {
+        msg_type: 'text',
+        content: {
+          text: text
         }
-      })
-      .catch((e) => {
-        Logger.info(`发送飞书出错: ${e}`)
-      })
+      }
+    })
   }
 }

@@ -148,7 +148,7 @@ export class FeishuPoster implements IssuePoster {
 export class FeishuBot {
   constructor(private appId: string, private appSecret: string) {}
   static botUrl =
-    'https://open.feishu.cn/open-apis/bot/v2/hook/03b24de8-b90b-4608-9ab1-418485ae90ad'
+    'https://open.feishu.cn/open-apis/bot/v2/hook/d568e91f-0ce7-4249-a343-0deb0146c799'
 
   static async send(text: string): Promise<void> {
     await axios.default.request({

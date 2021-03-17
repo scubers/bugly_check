@@ -20,9 +20,14 @@ export class Task {
       (v) =>
         this.getTimestamp(v) > this.lastIssueDate && v.issueDocMap.status != 1
     )
-    this.lastIssueDate = this.getTimestamp(issues[0])
+
+    if (newIssues.length > 0) {
+      this.lastIssueDate = this.getTimestamp(newIssues[0])
+    }
+
     Logger.info(`新问题: ${newIssues.length}`)
-    Logger.info(`最新更新时间: ${issues[0].issueDocMap.lastUploadTime}`)
+    Logger.info(`最新更新时间: ${new Date(this.lastIssueDate)}`)
+
     Logger.info(JSON.stringify(newIssues))
     return newIssues
   }

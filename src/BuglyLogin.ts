@@ -3,6 +3,7 @@ import { Options } from 'selenium-webdriver/chrome'
 import { ArgsUtil } from './ArgsUtil'
 import * as fs from 'fs'
 import { Logger } from './util/Logger'
+import { FeishuBot } from './BuglyService'
 
 export class BuglyLoginAction {
   delay(time: number): Promise<void> {
@@ -86,7 +87,10 @@ export class BuglyLoginAction {
     }
   }
 
-  async loginByQR(): Promise<{ token: string; session: string }> {
+  async loginByQR(options: {
+    appId: string
+    appSecret: string
+  }): Promise<{ token: string; session: string }> {
     let buglyHost = 'https://bugly.qq.com/v2/workbench/apps'
 
     let headless = ArgsUtil.get('silent') == '1'
@@ -126,11 +130,18 @@ export class BuglyLoginAction {
 
         var content = Buffer.from(shot, 'base64')
 
-        fs.writeFileSync('image.png', content)
+        var qrcodePath = `${__dirname}/qr.png`
 
-        // console.log(shot)
-        // let qrCodeUrl = await qrelement.getAttribute('src')
-        // FeishuBot.send(`Bugly 需要重新扫码登录: ${qrCodeUrl}`)
+        fs.writeFileSync(qrcodePath, content)
+
+        Logger.info(`登录二维码路径: ${qrcodePath}`)
+
+        if (options.appId != null && options.appSecret != null) {
+          await new FeishuBot(options.appId, options.appSecret).sendImage(
+            qrcodePath
+          )
+          Logger.info('发送飞书完成')
+        }
 
         while (session == null) {
           try {
@@ -142,6 +153,9 @@ export class BuglyLoginAction {
           }
         }
       }
+
+      Logger.info('获取session成功，等待页面跳转')
+      await this.delay(5000)
 
       // this.cookie = `bugly_session=${session.value};`
       // 获取token

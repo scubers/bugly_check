@@ -1,7 +1,8 @@
 import { BuglyIssue } from './entity/BuglyIssue'
 import * as axios from 'axios'
 import { Logger } from './util/Logger'
-import { tokenToString } from 'typescript'
+import * as fs from 'fs'
+import * as agent from 'superagent'
 
 export type BuglyIssueDateType =
   | 'custom'
@@ -114,8 +115,6 @@ export class BuglyService {
       url: url,
       method: 'get',
       headers: {
-        // 'x-token': token.value,
-        // 'cookie': `bugly_session=${session.value};`
         'x-token': this.token,
         cookie: `bugly_session=${this.session};`
       }
@@ -123,7 +122,7 @@ export class BuglyService {
     if (data.data.status == 200) {
       return data.data.ret
     }
-    throw JSON.stringify(data.data)
+    throw data.data
   }
 }
 
@@ -147,8 +146,9 @@ export class FeishuPoster implements IssuePoster {
 }
 
 export class FeishuBot {
+  constructor(private appId: string, private appSecret: string) {}
   static botUrl =
-    'https://open.feishu.cn/open-apis/bot/v2/hook/87e2cd1d-a3b4-41b3-ab0e-09d5bf93c270'
+    'https://open.feishu.cn/open-apis/bot/v2/hook/03b24de8-b90b-4608-9ab1-418485ae90ad'
 
   static async send(text: string): Promise<void> {
     await axios.default.request({
@@ -162,5 +162,67 @@ export class FeishuBot {
         }
       }
     })
+  }
+
+  async sendImage(path: string): Promise<void> {
+    var imageKey = await this.uploadImage(path)
+    console.log(imageKey)
+    await new Promise((resolve, rej) => {
+      agent
+        .get(FeishuBot.botUrl)
+        .send({
+          msg_type: 'image',
+          content: {
+            image_key: imageKey
+          }
+        })
+        .end((err, resp) => {
+          console.log(resp.body)
+          if (err) {
+            rej(err)
+          } else if (resp.body.StatusCode == 0) {
+            resolve(null)
+          } else {
+            rej(JSON.stringify(resp.body))
+          }
+        })
+    })
+  }
+
+  private async uploadImage(path: string): Promise<string> {
+    var token = await this.getTenatToken()
+
+    return new Promise((resolve, rej) => {
+      agent
+        .post('https://open.feishu.cn/open-apis/image/v4/put/')
+        .attach('image', path)
+        .set('Authorization', `Bearer ${token}`)
+        .field('image_type', 'message')
+        .end((err, resp) => {
+          if (err) {
+            rej(err)
+          } else if (resp.body.code == 0) {
+            resolve(resp.body.data.image_key)
+          } else {
+            rej(JSON.stringify(resp.body))
+          }
+        })
+    })
+  }
+
+  async getTenatToken(): Promise<string> {
+    var info = await axios.default.request({
+      url:
+        'https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal/',
+      method: 'post',
+      headers: {
+        'content-type': 'multipart/form-data'
+      },
+      data: {
+        app_id: this.appId,
+        app_secret: this.appSecret
+      }
+    })
+    return info.data.tenant_access_token
   }
 }

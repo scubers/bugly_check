@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import { BuglyLoginAction } from './BuglyLogin'
-import { FeishuPoster } from './BuglyService'
+import { FeishuBot, FeishuPoster } from './BuglyService'
 import * as readline from 'readline'
 import { Task } from './Task'
 
@@ -53,8 +53,8 @@ async function persistentToken(): Promise<Token> {
 
   var content = fs.readFileSync(authFile, 'utf8')
   var auth: Auth = JSON.parse(content)
-  // var info = await new BuglyLoginAction().login(auth.account, auth.pwd)
-  var info = await new BuglyLoginAction().loginByQR()
+  var info = await new BuglyLoginAction().login(auth.account, auth.pwd)
+  // var info = await new BuglyLoginAction().loginByQR()
   const token: Token = {
     token: info.token,
     session: info.session,
@@ -79,8 +79,8 @@ async function getCachedToken(): Promise<Token> {
     return null
   }
 
-  // 24小时
-  if (new Date().getTime() - token.time > 3600 * 24 * 1000) {
+  // 10 天有效期
+  if (new Date().getTime() - token.time > 3600 * 24 * 1000 * 10) {
     return null
   }
   return token
@@ -113,9 +113,17 @@ async function start(interval: number) {
       token = await persistentToken()
     }
 
-    for (var v in targets) {
-      var issues = await targets[v].run(token.token, token.session)
-      await new FeishuPoster().postIssue(targets[v].target, issues)
+    try {
+      for (var v in targets) {
+        var issues = await targets[v].run(token.token, token.session)
+        await new FeishuPoster().postIssue(targets[v].target, issues)
+      }
+    } catch (e) {
+      if (e.code == 100006) {
+        // bugly检查失败，删除文件重新登录
+        fs.unlinkSync(tokenFile)
+        FeishuBot.send('Bugly Token失效，请重新登录')
+      }
     }
   })
 }

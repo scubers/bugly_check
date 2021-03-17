@@ -19,12 +19,15 @@
     "typescript": "3.4.3",
     "forever": "3.0.4",
     "chromedriver": "89.0.0",
-    "dateformat": "4.5.1"
+    "dateformat": "4.5.1",
+    "qrcode-terminal": "0.12.0",
+    "superagent": "6.1.0"
   },
   "devDependencies": {
     "@types/chromedriver": "2.38.0",
     "@types/node": "^12.12.17",
     "@types/dateformat": "1.0.1",
-    "@types/selenium-webdriver": "3.0.8"
+    "@types/selenium-webdriver": "3.0.8",
+    "@types/superagent": "3.5.8"
   }
 }

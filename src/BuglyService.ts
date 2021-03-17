@@ -142,7 +142,7 @@ export class FeishuPoster implements IssuePoster {
     await axios.default
       .request({
         url:
-          'https://open.feishu.cn/open-apis/bot/v2/hook/e1549b66-b1f9-40c9-89ea-f1283dd94389',
+          'https://open.feishu.cn/open-apis/bot/v2/hook/87e2cd1d-a3b4-41b3-ab0e-09d5bf93c270',
         method: 'get',
         headers: {},
         data: {

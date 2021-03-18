@@ -128,4 +128,5 @@ async function start(interval: number) {
   })
 }
 
-start(10 * 1000)
+// 半小时检查
+start(1800 * 1000)

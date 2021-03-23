@@ -106,26 +106,29 @@ async function loopInterval(interval: number, action: () => Promise<void>) {
   }, interval)
 }
 
-async function start(interval: number) {
-  loopInterval(interval, async () => {
-    var token = await getCachedToken()
-    if (token == null) {
-      token = await persistentToken()
-    }
+async function run() {
+  var token = await getCachedToken()
+  if (token == null) {
+    token = await persistentToken()
+  }
 
-    try {
-      for (var v in targets) {
-        var issues = await targets[v].run(token.token, token.session)
-        await new FeishuPoster().postIssue(targets[v].target, issues)
-      }
-    } catch (e) {
-      if (e.code == 100006) {
-        // bugly检查失败，删除文件重新登录
-        fs.unlinkSync(tokenFile)
-        FeishuBot.send('Bugly Token失效，请重新登录')
-      }
+  try {
+    for (var v in targets) {
+      var issues = await targets[v].run(token.token, token.session)
+      await new FeishuPoster().postIssue(targets[v].target, issues)
     }
-  })
+  } catch (e) {
+    if (e.code == 100006) {
+      // bugly检查失败，删除文件重新登录
+      fs.unlinkSync(tokenFile)
+      FeishuBot.send('Bugly Token失效，重新登录')
+      await run()
+    }
+  }
+}
+
+async function start(interval: number) {
+  loopInterval(interval, async () => run())
 }
 
 // 半小时检查

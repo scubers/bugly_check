@@ -3,6 +3,7 @@ import { BuglyLoginAction } from './BuglyLogin'
 import { FeishuBot, FeishuPoster } from './BuglyService'
 import * as readline from 'readline'
 import { Task } from './Task'
+import { Logger } from './util/Logger'
 
 const authFile = `${__dirname}/../.auth.json`
 const tokenFile = `${__dirname}/../.token.json`
@@ -121,7 +122,8 @@ async function run() {
     if (e.code == 100006) {
       // bugly检查失败，删除文件重新登录
       fs.unlinkSync(tokenFile)
-      FeishuBot.send('Bugly Token失效，重新登录')
+      Logger.info('Bugly Token失效，重新登录')
+      // FeishuBot.send('Bugly Token失效，重新登录')
       await run()
     }
   }

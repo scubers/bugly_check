@@ -77,7 +77,7 @@ export class BuglyLoginAction {
         token: token,
         session: session.value
       }
-      Logger.info(info)
+      Logger.info(JSON.stringify(info))
       return info
     } catch (error) {
       Logger.info(error)
